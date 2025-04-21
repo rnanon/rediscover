@@ -21,13 +21,15 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            BufferedInputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
+            while (!clientSocket.isClosed() && clientSocket.isConnected()) {
+                log.info("New client connected: {}", clientSocket);
+                BufferedInputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
 
-            RequestResponse request = RequestParser.parse(inputStream);
-            RequestResponse response = requestResponseService.getResponse(request);
-            byte[] responseBytes = ResponseParser.parse(response);
-            clientSocket.getOutputStream().write(responseBytes);
-
+                RequestResponse request = RequestParser.parse(inputStream);
+                RequestResponse response = requestResponseService.getResponse(request);
+                byte[] responseBytes = ResponseParser.parse(response);
+                clientSocket.getOutputStream().write(responseBytes);
+            }
         } catch (IOException e) {
             log.error("Error handling client communication", e);
         } finally {

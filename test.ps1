@@ -130,7 +130,7 @@ function Send-ProtocolRequest
         $global:stream.Write($message, 0, $message.Length)
 
         # Give server time to process
-        Start-Sleep -Milliseconds 500
+        Start-Sleep -Milliseconds 5000
 
         # Read response
         $response = New-Object byte[] 4096

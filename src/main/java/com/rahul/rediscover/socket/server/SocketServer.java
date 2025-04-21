@@ -29,7 +29,6 @@ public class SocketServer {
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();
-                    log.info("New client connected: {}", clientSocket.getInetAddress());
                     new Thread(() -> new ClientHandler(clientSocket, requestResponseService).run()).start();
                 } catch (IOException e) {
                     if (running) {
