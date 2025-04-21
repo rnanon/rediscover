@@ -13,7 +13,7 @@ import java.net.Socket;
 
 @RequiredArgsConstructor
 @Slf4j
-public class ClientHandler implements Runnable{
+public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
     private final RequestResponseService requestResponseService;
@@ -23,8 +23,7 @@ public class ClientHandler implements Runnable{
         try {
             BufferedInputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
 
-            byte[] requestBytes = inputStream.readAllBytes();
-            RequestResponse request = RequestParser.parse(requestBytes);
+            RequestResponse request = RequestParser.parse(inputStream);
             RequestResponse response = requestResponseService.getResponse(request);
             byte[] responseBytes = ResponseParser.parse(response);
             clientSocket.getOutputStream().write(responseBytes);
