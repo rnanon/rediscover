@@ -2,6 +2,7 @@ $Host_Address = "localhost"
 $Port = 9090
 $GET_OPCODE = 0x01
 $SET_OPCODE = 0x02
+$DELETE_OPCODE = 0x03
 
 # Create the TCP client at the start
 $global:client = $null
@@ -107,9 +108,13 @@ function Send-ProtocolRequest
         {
             "GET"
         }
-        else
+        elseif ($Opcode -eq $SET_OPCODE)
         {
             "SET"
+        }
+        else
+        {
+            "DELETE"
         }
         Write-Host "`nSending $operationType request with:" -ForegroundColor Cyan
         Write-Host "OPCODE: $Opcode" -ForegroundColor Cyan
@@ -142,7 +147,7 @@ function Send-ProtocolRequest
 
         if ($bytesRead -gt 5)
         {
-            $responseValueLength = (($response[1] -shl 24) -bor ($response[2] -shl 16) -bor ($response[3] -shl 8) -bor $response[4])
+            $respnseValueLength = (($response[1] -shl 24) -bor ($response[2] -shl 16) -bor ($response[3] -shl 8) -bor $response[4])
 
             if ($bytesRead -ge (5 + $responseValueLength))
             {
@@ -171,8 +176,9 @@ try
             Write-Host "`n=== Protocol Client Menu ===" -ForegroundColor Magenta
             Write-Host "1. Send GET request" -ForegroundColor White
             Write-Host "2. Send SET request" -ForegroundColor White
-            Write-Host "3. Exit" -ForegroundColor White
-            $choice = Read-Host "Enter choice (1, 2, or 3)"
+            Write-Host "3. Send DELETE request" -ForegroundColor White
+            Write-Host "4. Exit" -ForegroundColor White
+            $choice = Read-Host "Enter choice (1, 2, 3 or 4)"
 
             switch ($choice)
             {
@@ -185,7 +191,13 @@ try
                     $value = Read-Host "Enter value"
                     Send-ProtocolRequest -Key $key -Opcode $SET_OPCODE -Value $value
                 }
+
                 "3" {
+                    $key = Read-Host "Enter key to DELETE"
+                    Send-ProtocolRequest -Key $key -Opcode $DELETE_OPCODE
+                }
+
+                "4" {
                     Write-Host "Exiting..." -ForegroundColor Yellow
                     break
                 }
@@ -194,7 +206,7 @@ try
                 }
             }
 
-            if ($choice -eq "3")
+            if ($choice -eq "4")
             {
                 break
             }

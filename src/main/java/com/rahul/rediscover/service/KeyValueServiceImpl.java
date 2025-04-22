@@ -31,7 +31,7 @@ public class KeyValueServiceImpl implements KeyValueService {
         if (!kvStore.containsKey(key)) {
             throw new NoSuchElementException("Key not found: " + key);
         }
-        log.info("Map after delete {}", kvStore);
         kvStore.remove(key);
+        log.info("Map after delete {}", kvStore);
     }
 }

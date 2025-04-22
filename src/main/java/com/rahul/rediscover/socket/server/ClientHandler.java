@@ -21,17 +21,42 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            while (!clientSocket.isClosed() && clientSocket.isConnected()) {
-                log.info("New client connected: {}", clientSocket);
-                BufferedInputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
+            log.info("New client connected: {}", clientSocket);
+            BufferedInputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
 
-                RequestResponse request = RequestParser.parse(inputStream);
-                RequestResponse response = requestResponseService.getResponse(request);
-                byte[] responseBytes = ResponseParser.parse(response);
-                clientSocket.getOutputStream().write(responseBytes);
+            while (!clientSocket.isClosed() && clientSocket.isConnected()) {
+                if (inputStream.available() > 0) {
+                    log.debug("Data available: {} bytes", inputStream.available());
+
+                    inputStream.mark(65536);
+
+                    // Read the available data for debugging
+                    byte[] debugBuffer = new byte[inputStream.available()];
+                    inputStream.read(debugBuffer);
+
+                    // Print the data for debugging
+                    StringBuilder hexString = new StringBuilder();
+                    for (byte b : debugBuffer) {
+                        hexString.append(String.format("%02X ", b));
+                    }
+                    log.debug("Received data: {}", hexString);
+
+                    inputStream.reset();
+
+                    RequestResponse request = RequestParser.parse(inputStream);
+                    RequestResponse response = requestResponseService.getResponse(request);
+                    byte[] responseBytes = ResponseParser.parse(response);
+                    clientSocket.getOutputStream().write(responseBytes);
+                } else {
+                    // No data available yet, sleep briefly to avoid CPU spinning
+                    Thread.sleep(10);
+                }
             }
         } catch (IOException e) {
             log.error("Error handling client communication", e);
+        } catch (InterruptedException e) {
+            log.error("Thread interrupted", e);
+            Thread.currentThread().interrupt();
         } finally {
             try {
                 log.info("Closing connection with {}", clientSocket.getInetAddress());
